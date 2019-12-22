@@ -6,13 +6,19 @@ router.get("/", (req, res, next) => {
 });
 
 router.post("/", (req, res, next) => {
-    res.status(200).json({ message: "Products will be here from post method!" });
+    const productInfo = { productName: req.body.productName }
+    res.status(200).json({
+        message: "Products will be here from post method!",
+        productInfo
+    });
 });
 
 router.post("/:productId", (req, res, next) => {
+
+
     res.status(200).json({
         message: "This  product is posted!",
-        product: req.params.productId
+        product: req.params.productId,
     });
 });
 
