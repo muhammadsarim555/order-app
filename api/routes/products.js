@@ -8,8 +8,19 @@ const Product = require("../models/product")
 
 router.get("/", (req, res, next) => {
 
-    Product.find().exec().then(s =>
-        res.status(200).json(s)
+    Product.find().select("name _id price").exec().then(s => {
+        const productInfo = {
+            count: s.length,
+            products: s,
+
+            request: {
+                type: "GET",
+                url: "localhost:3000/products"
+            }
+        }
+
+        res.status(200).json(productInfo)
+    }
     ).catch(e => console.log(e))
 })
 
@@ -20,22 +31,42 @@ router.post("/", (req, res, next) => {
         price: req.body.price
     })
 
-    productInfo.save().then(succes => console.log(succes))
-        .catch(err => console.log(err))
+    productInfo.save().then(success => {
+        const createdProduct = {
+            name: success.name,
+            price: success.price,
+            _id: success._id,
 
-    res.status(200).json({
-        message: "Products will be here from post method!",
-        productInfo
-    });
+
+            request: {
+                type: "POST",
+                uri: "localhost:3000/products "
+            }
+        }
+        res.status(200).json({
+            message: "Products will be here from post method!",
+            productInfo: createdProduct
+        })
+    }
+    )
+        .catch(err => res.status(400).json({ error: err }))
+
+
 });
 
 router.get("/:productId", (req, res, next) => {
 
     const id = req.params.productId
 
-    Product.findById(id).then(s => {
+    Product.findById(id).select("name _id price").then(s => {
         if (s) {
-            res.status(200).json(s)
+            res.status(200).json({
+                products: s,
+                request: {
+                    type: "GET",
+                    url: "localhost:3000/products"
+                }
+            })
         }
         else {
             res.status(404).json({ message: "No valid entry found for provided ID" })
@@ -44,16 +75,12 @@ router.get("/:productId", (req, res, next) => {
     )
         .catch(e => res.status(500).json(e))
 
-    // res.status(200).json({
-    //     message: "This  product is posted!",
-    //     product: req.params.productId,
-    // });
 });
 
 router.delete("/:productId", (req, res, next) => {
     const id = req.params.productId;
 
-    Product.remove({ _id: id }).exec().then(s => res.status(200).json(s)).catch(e => res.status(500).json({ error: e }))
+    Product.remove({ _id: id }).exec().then(s => res.status(200).json({message:"Successfully Deleted"})).catch(e => res.status(500).json({ error: e }))
 })
 
 router.patch("/:productId", (req, res, next) => {
@@ -66,12 +93,10 @@ router.patch("/:productId", (req, res, next) => {
     }
 
     Product.update({ _id: id }, { $set: updateops })
-        .exec().then(s => res.status(200).json(s))
-            .catch(e => res.status.json({ error: e }))
+        .exec().then(s => res.status(200).json({ message: "Product Updated", request: { type: "PATCH", url: "localhost:3000/products" } }))
+        .catch(e => res.status.json({ error: e }))
 
-    // Product.findOneAndUpdate(id, { $set: body },{returnNewDocument: true})
-    // .then(s => res.status(200).send())
-    // .catch(e => res.status(400).send());
+
 })
 
 module.exports = router;
