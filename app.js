@@ -10,6 +10,7 @@ const app = express();
 
 const products = require("./api/routes/products");
 const orders = require("./api/routes/orders");
+const users = require("./api/routes/users")
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -18,6 +19,7 @@ app.use("/uploads",express.static('uploads'))
 
 app.use("/products", products);
 app.use("/orders", orders);
+app.use("/users", users)
 
 app.use((req, res, next) => {
   const error = new Error("Not Found!");
