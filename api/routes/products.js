@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const _ = require("lodash");
 const multer = require("multer");
 
+const checkAuth = require("../middleware/check-auth");
 const Product = require("../models/product");
 
 const storage = multer.diskStorage({
@@ -23,7 +24,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ storage: storage, fileFilter:fileFilter });
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 router.get("/", (req, res, next) => {
   Product.find()
@@ -45,7 +46,7 @@ router.get("/", (req, res, next) => {
     .catch(e => console.log(e));
 });
 
-router.post("/", upload.single("productImage"), (req, res, next) => {
+router.post("/", checkAuth, upload.single("productImage"), (req, res, next) => {
   console.log(req.file);
 
   const productInfo = new Product({
@@ -76,7 +77,7 @@ router.post("/", upload.single("productImage"), (req, res, next) => {
     .catch(err => res.status(400).json({ error: err }));
 });
 
-router.get("/:productId", (req, res, next) => {
+router.get("/:productId", checkAuth,(req, res, next) => {
   const id = req.params.productId;
 
   Product.findById(id)
